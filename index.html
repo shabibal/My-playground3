@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ملعبي - المنصة المتكاملة لجميع الرياضات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google API Scripts -->
+    <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" defer></script>
+    <script src="https://accounts.google.com/gsi/client" onload="gisLoaded()" defer></script>
+</head>
+<body>
+
+<!-- ================ Header ================ -->
+<header class="main-header hidden" id="appHeader">
+    <div class="logo">ملعبي</div>
+    <nav class="nav-links">
+        <a href="#" onclick="showPage('sportsSelectionPage')"><i class="fas fa-running"></i> الرياضات</a>
+        <a href="#" onclick="showPage('tournamentsPage')"><i class="fas fa-trophy"></i> البطولات</a>
+        <a href="#" onclick="showPage('productsPage')"><i class="fas fa-shopping-bag"></i> منتجات الرياضة</a>
+    </nav>
+    <div class="user-menu">
+        <div class="notification-bell" onclick="toggleNotifications()">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge">0</span>
+            <div class="notification-dropdown" id="notificationDropdown"></div>
+        </div>
+        <span id="headerUserName">ضيف</span>
+        <button id="signin-button" class="btn btn-secondary btn-sm" onclick="handleAuthClick()">
+            تسجيل الدخول لحفظ البيانات
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-home"></i> القائمة الرئيسية
+        </button>
+    </div>
+</header>
+
+<!-- ================ 1. Main Menu ================ -->
+<div id="mainMenuPage">
+    <h1>مرحباً بك في منصة ملعبي</h1>
+    <p>منصتك الشاملة لحجز جميع المنشآت الرياضية</p>
+    <ul class="menu-buttons">
+        <li class="menu-button" onclick="showPage('sportsSelectionPage')">
+            <i class="fas fa-running"></i> 
+            <span>استكشف الرياضات</span>
+        </li>
+        <li class="menu-button" onclick="showPage('productsPage')">
+            <i class="fas fa-shopping-bag"></i> 
+            <span>منتجات الرياضة</span>
+        </li>
+        <li class="menu-button" onclick="showPage('ownerLoginPage')">
+            <i class="fas fa-store"></i> 
+            <span>أنا صاحب منشأة</span>
+        </li>
+        <li class="menu-button" onclick="showPage('adminLoginPage')">
+            <i class="fas fa-cogs"></i> 
+            <span>صفحة الإدارة</span>
+        </li>
+    </ul>
+</div>
+
+<!-- ================ 2. Sports Selection Page ================ -->
+<div id="sportsSelectionPage" class="container hidden">
+    <h2><i class="fas fa-running"></i> اختر الرياضة التي تريد ممارستها</h2>
+    <ul class="sports-grid">
+        <li class="sport-card" onclick="selectSport('football')">
+            <div class="sport-icon"><i class="fas fa-futbol"></i></div>
+            <h3>كرة القدم</h3>
+            <p>احجز ملاعب كرة القدم</p>
+        </li>
+        <li class="sport-card" onclick="selectSport('volleyball')">
+            <div class="sport-icon"><i class="fas fa-volleyball-ball"></i></div>
+            <h3>كرة الطائرة</h3>
+            <p>احزر ملاعب كرة الطائرة</p>
+        </li>
+        <li class="sport-card" onclick="selectSport('basketball')">
+            <div class="sport-icon"><i class="fas fa-basketball-ball"></i></div>
+            <h3>كرة السلة</h3>
+            <p>احجز ملاعب كرة السلة</p>
+        </li>
+        <li class="sport-card" onclick="selectSport('tennis')">
+            <div class="sport-icon"><i class="fas fa-table-tennis"></i></div>
+            <h3>تنس الطاولة</h3>
+            <p>احزر ملاعب تنس الطاولة</p>
+        </li>
+        <li class="sport-card" onclick="selectSport('swimming')">
+            <div class="sport-icon"><i class="fas fa-swimmer"></i></div>
+            <h3>السباحة</h3>
+            <p>احجز مسابح</p>
+        </li>
+        <li class="sport-card" onclick="selectSport('esports')">
+            <div class="sport-icon"><i class="fas fa-gamepad"></i></div>
+            <h3>الرياضات الإلكترونية</h3>
+            <p>احزر مقاعد إلكترونية</p>
+        </li>
+    </ul>
+    <div class="btn-group">
+        <button class="btn btn-secondary btn-lg" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-arrow-right"></i> العودة للقائمة الرئيسية
+        </button>
+    </div>
+</div>
+
+<!-- ================ Products Page ================ -->
+<div id="productsPage" class="container hidden">
+    <h2><i class="fas fa-shopping-bag"></i> منتجات الرياضة</h2>
+    
+    <!-- Product Filters -->
+    <div class="products-filters">
+        <div class="filter-group">
+            <label>الفئة:</label>
+            <select id="productCategoryFilter" onchange="filterProducts()">
+                <option value="">الكل</option>
+                <option value="clothing">ملابس رياضية</option>
+                <option value="shoes">أحذية رياضية</option>
+                <option value="equipment">معدات رياضية</option>
+                <option value="accessories">إكسسوارات</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>السعر:</label>
+            <select id="priceRangeFilter" onchange="filterProducts()">
+                <option value="">الكل</option>
+                <option value="0-10">أقل من 10 ريال عماني</option>
+                <option value="10-25">10-25 ريال عماني</option>
+                <option value="25-50">25-50 ريال عماني</option>
+                <option value="50+">أكثر من 50 ريال عماني</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <input type="text" id="productSearchInput" placeholder="ابحث عن منتج..." onkeyup="filterProducts()">
+        </div>
+    </div>
+
+    <div id="productsGrid" class="products-grid">
+        <!-- Products will be loaded here -->
+    </div>
+    
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-arrow-right"></i> العودة للقائمة الرئيسية
+        </button>
+    </div>
+</div>
+
+<!-- ================ Product Detail Page ================ -->
+<div id="productDetailPage" class="container hidden">
+    <button class="btn btn-secondary" onclick="showPage('productsPage')">
+        <i class="fas fa-arrow-right"></i> العودة للمنتجات
+    </button>
+    <div id="productDetailContent">
+        <!-- Product details will be loaded here -->
+    </div>
+</div>
+
+<!-- ================ Player Interface (Venues List) ================ -->
+<div id="playerInterface" class="container hidden">
+    <h2 id="playerInterfaceTitle"><i class="fas fa-futbol"></i> اكتشف المنشآت الرياضية</h2>
+
+    <!-- Location Section -->
+    <div class="location-section">
+        <div class="location-header">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>اكتشف المنشآت القريبة منك</h3>
+        </div>
+        <button class="btn btn-primary" onclick="getUserLocation()">
+            <i class="fas fa-location-arrow"></i> تحديد موقعي الحالي
+        </button>
+    </div>
+
+    <!-- Map Container -->
+    <div id="mapContainer">
+        <div class="map-controls">
+            <button class="map-control-btn" onclick="centerMapOnUser()" title="موقعي">
+                <i class="fas fa-crosshairs"></i>
+            </button>
+            <button class="map-control-btn" onclick="toggleMapStyle()" title="تغيير الخريطة">
+                <i class="fas fa-layer-group"></i>
+            </button>
+            <button class="map-control-btn" onclick="toggleFullscreen()" title="ملء الشاشة">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Location Filters -->
+    <div class="location-filters">
+        <div class="distance-filter">
+            <label>البحث ضمن مسافة:</label>
+            <input type="range" class="distance-slider" id="distanceSlider" min="1" max="50" value="10" oninput="updateDistanceFilter(this.value)">
+            <span class="distance-value" id="distanceValue">10 كم</span>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="filterByDistance()">
+                <i class="fas fa-filter"></i> تطبيق المسافة
+            </button>
+            <button class="btn btn-secondary" onclick="clearLocationFilter()">
+                <i class="fas fa-times"></i> مسح التصفية
+            </button>
+        </div>
+    </div>
+
+    <div class="filters-container">
+        <div class="form-group"><label for="citySearchInput">المدينة</label><input type="text" id="citySearchInput" placeholder="مثال: مسقط"></div>
+        <div class="form-group"><label>نوع السطح</label><select id="filterSurface"><option value="">الكل</option></select></div>
+        <div class="form-group"><label>حجم المنشأة</label><select id="filterSize"><option value="">الكل</option></select></div>
+        <div class="form-group"><label>إضاءة ليلية</label><select id="filterLights"><option value="">الكل</option><option value="true">متوفرة</option><option value="false">غير متوفرة</option></select></div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-search"></i> بحث
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="displayVenuesForPlayer()">
+                <i class="fas fa-list"></i> عرض الكل
+            </button>
+        </div>
+    </div>
+
+    <!-- Nearby Venues Section -->
+    <div class="nearby-venues" id="nearbyVenues">
+        <div class="nearby-title">
+            <i class="fas fa-map-pin"></i>
+            <h3>المنشآت القريبة</h3>
+        </div>
+        <div class="nearby-list" id="nearbyList">
+            <!-- Nearby venues will be populated here -->
+        </div>
+    </div>
+
+    <ul id="venuesListForPlayer" class="venues-grid"></ul>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('sportsSelectionPage')">
+            <i class="fas fa-arrow-right"></i> العودة لاختيار الرياضة
+        </button>
+    </div>
+</div>
+
+<!-- ================ Venue Detail & Booking ================ -->
+<div id="venueDetailPage" class="container hidden">
+    <button class="btn btn-secondary" onclick="showPage('playerInterface')">
+        <i class="fas fa-arrow-right"></i> العودة لقائمة المنشآت
+    </button>
+    <h2 id="detailVenueName"></h2>
+
+    <!-- Enhanced Location Info -->
+    <div class="venue-location-info">
+        <div class="location-badge">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="venueLocationText"></span>
+        </div>
+        <div class="distance-info" id="venueDistance">
+            <i class="fas fa-route"></i>
+            <span>جاري حساب المسافة...</span>
+        </div>
+        <button class="directions-btn" onclick="getDirections()">
+            <i class="fas fa-directions"></i>
+            الحصول على الاتجاهات
+        </button>
+    </div>
+
+    <div id="detailVenueInfo" class="booking-info"></div>
+
+    <!-- Enhanced Map -->
+    <div id="venueMap" style="margin: 20px 0; border-radius: 8px; overflow: hidden; height: 300px;"></div>
+
+    <h3>احجز وقتك</h3>
+    <div class="form-group"><label for="bookingDate">اختر يوم الحجز</label><input type="date" id="bookingDate" onchange="generateTimeSlots()"></div>
+    <div class="form-group"><label for="discountCodeInput">كود خصم (اختياري)</label><input type="text" id="discountCodeInput" placeholder="أدخل الكود هنا"></div>
+    <div id="timeSlotsContainer" class="time-slots-container"></div>
+    <div id="bookingMessage" class="message hidden"></div>
+    <h3>التقييمات والمراجعات</h3>
+    <div id="reviewsContainer"></div>
+</div>
+
+<!-- ================ Payment Page ================ -->
+<div id="paymentPage" class="container hidden">
+    <h2><i class="fas fa-credit-card"></i> إتمام الدفع</h2>
+    <div id="paymentSummary" class="booking-info"></div>
+    <div class="payment-form-container">
+        <div id="paypal-button-container"></div>
+    </div>
+    <div id="paymentMessage" class="message hidden"></div>
+</div>
+
+<!-- ================ Owner Login ================ -->
+<div id="ownerLoginPage" class="container hidden">
+    <h2><i class="fas fa-store"></i> تسجيل دخول صاحب المنشأة</h2>
+    <form id="ownerLoginForm">
+        <div class="form-group"><label for="ownerLoginEmail">البريد الإلكتروني</label><input type="email" id="ownerLoginEmail" required></div>
+        <div class="form-group"><label for="ownerLoginPassword">الرمز السري</label><input type="password" id="ownerLoginPassword" required></div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> دخول
+            </button>
+        </div>
+    </form>
+    <div id="ownerLoginMessage" class="message hidden"></div>
+    <p>ليس لديك حساب؟ <a href="#" onclick="showPage('ownerRegistrationPage')">إنشاء حساب جديد</a></p>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-home"></i> العودة للقائمة الرئيسية
+        </button>
+    </div>
+</div>
+
+<!-- ================ Owner Registration ================ -->
+<div id="ownerRegistrationPage" class="container hidden">
+    <h2><i class="fas fa-user-plus"></i> إنشاء حساب جديد</h2>
+    <form id="ownerRegistrationForm">
+        <div class="form-group"><label for="ownerName">الاسم الكامل</label><input type="text" id="ownerName" required></div>
+        <div class="form-group"><label for="ownerEmail">البريد الإلكتروني</label><input type="email" id="ownerEmail" required></div>
+        <div class="form-group"><label for="ownerPassword">الرمز السري</label><input type="password" id="ownerPassword" required></div>
+        <div class="form-group"><label for="ownerPhone">رقم الهاتف</label><input type="tel" id="ownerPhone" required></div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> إنشاء حساب
+            </button>
+        </div>
+    </form>
+    <div id="registrationMessage" class="message hidden"></div>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('ownerLoginPage')">
+            <i class="fas fa-arrow-left"></i> العودة لتسجيل الدخول
+        </button>
+    </div>
+</div>
+
+<!-- ================ Owner Dashboard ================ -->
+<div id="ownerDashboard" class="hidden">
+    <div class="dashboard-container">
+        <aside class="owner-sidebar">
+            <h3>لوحة تحكم صاحب المنشأة</h3>
+            <ul>
+                <li><a href="#" class="active" onclick="showOwnerSection('overview')"><i class="fas fa-chart-line"></i> الإحصائيات</a></li>
+                <li><a href="#" onclick="showOwnerSection('venues')"><i class="fas fa-building"></i> المنشآت الخاصة بي</a></li>
+                <li><a href="#" onclick="showOwnerSection('add-venue')"><i class="fas fa-plus-circle"></i> إضافة منشأة جديدة</a></li>
+                <li><a href="#" onclick="showOwnerSection('bookings')"><i class="fas fa-calendar-check"></i> إدارة الحجوزات</a></li>
+                <li><a href="#" onclick="showOwnerSection('tournaments')"><i class="fas fa-trophy"></i> إدارة البطولات</a></li>
+            </ul>
+            <button class="btn btn-danger" style="width: 100%; margin-top: 20px;" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </aside>
+        <main class="owner-content" id="ownerContent">
+            <!-- Content will be loaded here dynamically -->
+        </main>
+    </div>
+</div>
+
+<!-- ================ Admin Login ================ -->
+<div id="adminLoginPage" class="container hidden">
+    <h2><i class="fas fa-cogs"></i> لوحة تحكم الإدارة</h2>
+    <form id="adminLoginForm">
+        <div class="form-group"><label for="adminEmail">البريد الإلكتروني</label><input type="email" id="adminEmail" required></div>
+        <div class="form-group"><label for="adminPassword">الرمز السري</label><input type="password" id="adminPassword" required></div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> دخول
+            </button>
+        </div>
+    </form>
+    <div id="loginMessage" class="message hidden"></div>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-home"></i> العودة للقائمة الرئيسية
+        </button>
+    </div>
+</div>
+
+<!-- ================ Admin Dashboard ================ -->
+<div id="adminDashboard" class="hidden">
+    <div class="dashboard-container">
+        <aside class="admin-sidebar">
+            <h3>لوحة التحكم</h3>
+            <ul>
+                <li><a href="#" class="active" onclick="showAdminSection('overview')"><i class="fas fa-chart-line"></i> الإحصائيات</a></li>
+                <li><a href="#" onclick="showAdminSection('approvals')"><i class="fas fa-user-check"></i> الموافقة على الحسابات</a></li>
+                <li><a href="#" onclick="showAdminSection('users')"><i class="fas fa-users"></i> إدارة الحسابات</a></li>
+                <li><a href="#" onclick="showAdminSection('venues')"><i class="fas fa-building"></i> إدارة المنشآت</a></li>
+                <li><a href="#" onclick="showAdminSection('add-venue')"><i class="fas fa-plus-circle"></i> إضافة منشأة جديدة</a></li>
+                <li><a href="#" onclick="showAdminSection('bookings')"><i class="fas fa-calendar-check"></i> إدارة الحجوزات</a></li>
+                <li><a href="#" onclick="showAdminSection('tournaments')"><i class="fas fa-trophy"></i> إدارة البطولات</a></li>
+                <li><a href="#" onclick="showAdminSection('products')"><i class="fas fa-shopping-bag"></i> إدارة المنتجات</a></li>
+                <li><a href="#" onclick="showAdminSection('discounts')"><i class="fas fa-tags"></i> إدارة الخصومات</a></li>
+            </ul>
+            <button class="btn btn-danger" style="width: 100%; margin-top: 20px;" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </aside>
+        <main class="admin-content" id="adminContent">
+            <!-- Content will be loaded here dynamically -->
+        </main>
+    </div>
+</div>
+
+<!-- ================ Chat Page (for Player) ================ -->
+<div id="chatPage" class="container hidden">
+    <button class="btn btn-secondary" onclick="showPage('playerInterface')">
+        <i class="fas fa-arrow-right"></i> العودة
+    </button>
+    <div class="chat-container">
+        <div class="chat-header"><span>دردشة تأكيد الحجز</span><span id="chatStatus">في انتظار تأكيد الدفع</span></div>
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="اكتب رسالتك...">
+            <label for="imageUpload" class="btn btn-secondary btn-icon">
+                <i class="fas fa-image"></i>
+            </label>
+            <input type="file" id="imageUpload" accept="image/*" onchange="sendImage(event)">
+            <button class="btn btn-primary btn-icon" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================ Admin Chat Page ================ -->
+<div id="adminChatPage" class="container hidden">
+    <button class="btn btn-secondary" onclick="showAdminSection('bookings')">
+        <i class="fas fa-arrow-right"></i> العودة للحجوزات
+    </button>
+    <div class="chat-container">
+        <div class="chat-header"><span>دردشة تأكيد الحجز</span><span id="adminChatStatus">مراجعة الحجز</span></div>
+        <div id="adminChatMessages" class="chat-messages"></div>
+        <div class="chat-input-container">
+            <input type="text" id="adminChatInput" placeholder="اكتب رسالتك...">
+            <button class="btn btn-success" onclick="confirmBookingFromChat()">
+                <i class="fas fa-check"></i> تأكيد الحجز
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================ Tournaments Page ================ -->
+<div id="tournamentsPage" class="container hidden">
+    <h2><i class="fas fa-trophy"></i> البطولات المتاحة</h2>
+    <p class="text-center">لتسجيل البطولات، يجب عليك إنشاء حساب كصاحب منشأة.</p>
+    <div id="tournamentsListContainer"></div>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('mainMenuPage')">
+            <i class="fas fa-home"></i> العودة للقائمة الرئيسية
+        </button>
+    </div>
+</div>
+
+<!-- ================ Create Tournament Page ================ -->
+<div id="createTournamentPage" class="container hidden">
+    <h2><i class="fas fa-plus-circle"></i> إنشاء بطولة جديدة</h2>
+    <form id="createTournamentForm">
+        <div class="form-group"><label>نوع الرياضة</label><select id="tournamentSport" onchange="populateVenueSelect()" required><option value="football">كرة القدم</option><option value="volleyball">كرة الطائرة</option><option value="basketball">كرة السلة</option><option value="tennis">تنس الطاولة</option><option value="swimming">السباحة</option><option value="esports">رياضات إلكترونية</option></select></div>
+        <div class="form-group"><label for="tournamentName">اسم البطولة</label><input type="text" id="tournamentName" required></div>
+        <div class="form-group"><label for="tournamentVenue">المنشأة</label><select id="tournamentVenue" required></select></div>
+        <div class="form-group"><label for="tournamentDate">تاريخ البطولة</label><input type="date" id="tournamentDate" required></div>
+        <div class="form-group"><label for="tournamentFee">رسوم التسجيل (ريال عماني)</label><input type="number" id="tournamentFee" required></div>
+        <div class="form-group"><label for="tournamentDetails">التفاصيل</label><textarea id="tournamentDetails"></textarea></div>
+        <div class="btn-group">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> إنشاء البطولة
+            </button>
+        </div>
+    </form>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showOwnerSection('tournaments')">
+            <i class="fas fa-arrow-left"></i> العودة للوحة التحكم
+        </button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AfO0tICkdooc0JlximVPdmPLZi_hK5SMuICkTsRabLJVlGTMbJPEZ9li-POI5apIQdu6ijpIR5Gqgd_d&currency=USD"></script>
+<script src="google-sheets.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
