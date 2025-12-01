@@ -64,8 +64,24 @@ function handleAuthClick() {
     if (gapi.client.getToken() === null) {
         tokenClient.requestAccessToken({ prompt: 'consent' });
     } else {
+function handleAuthClick() {
+    tokenClient.callback = (resp) => {
+        if (resp.error !== undefined) throw resp;
+
+        console.log('Signed in successfully');
+        document.getElementById('signin-button').innerText = 'تسجيل الخروج';
+    };
+
+    if (gapi.client.getToken() === null) {
+        // تسجيل الدخول
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    } else {
+        // تسجيل الخروج فقط عند الضغط على الزر
         google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
         gapi.client.setToken('');
+        document.getElementById('signin-button').innerText = 'تسجيل الدخول';
+    }
+}
 
         document.getElementById('signin-button').innerText = 'تسجيل الدخول لحفظ البيانات';
 
