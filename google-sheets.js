@@ -76,12 +76,6 @@ function handleAuthClick() {
         // تسجيل الدخول
         tokenClient.requestAccessToken({ prompt: 'consent' });
     } else {
-        // تسجيل الخروج فقط عند الضغط على الزر
-        google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
-        gapi.client.setToken('');
-        document.getElementById('signin-button').innerText = 'تسجيل الدخول';
-    }
-}
 
         document.getElementById('signin-button').innerText = 'تسجيل الدخول لحفظ البيانات';
 
