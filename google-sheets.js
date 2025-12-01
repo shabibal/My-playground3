@@ -2,11 +2,14 @@
 const SPREADSHEET_ID = '1N2l2Ko1zzZOXLySTJHXylEX3UY_TATZB3nnpF0NHMf0';
 const API_KEY = 'AIzaSyAr9is4xy1PrwApMUse2n81sDEIolX2sGg'; 
 const CLIENT_ID = '599190856853-amagititt48kn4jj4v13d7vv4em9dn2h.apps.googleusercontent.com';
-const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
-// -----------------------------------------------------
 
-// --- Global variables ---
+const DISCOVERY_DOCS = [
+    'https://sheets.googleapis.com/$discovery/rest?version=v4'
+];
+
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive';
+
+// -----------------------------------------------------
 
 let tokenClient;
 let gapiInited = false;
@@ -31,8 +34,9 @@ function gisLoaded() {
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
-        callback: '', // سيتم تعريفه لاحقًا
+        callback: '', 
     });
+
     gisInited = true;
     maybeEnableButtons();
 }
@@ -40,7 +44,6 @@ function gisLoaded() {
 function maybeEnableButtons() {
     if (gapiInited && gisInited) {
         console.log('Google APIs loaded successfully');
-        // إعلام التطبيق بأن واجهات برمجة التطبيقات جاهزة
         document.dispatchEvent(new Event('googleApisReady'));
     }
 }
@@ -48,27 +51,24 @@ function maybeEnableButtons() {
 // --- Authentication ---
 function handleAuthClick() {
     tokenClient.callback = (resp) => {
-        if (resp.error !== undefined) {
-            throw (resp);
-        }
+        if (resp.error !== undefined) throw resp;
+
         console.log('Signed in successfully');
         document.getElementById('signin-button').innerText = 'تسجيل الخروج';
-        // بعد تسجيل الدخول بنجاح، قم بمزامنة البيانات
+
         if (window.syncManager) {
             window.syncManager.syncWithGoogleSheets();
         }
     };
     
     if (gapi.client.getToken() === null) {
-        // طلب رمز المصادقة
         tokenClient.requestAccessToken({ prompt: 'consent' });
     } else {
-        // المستخدم مسجل دخوله بالفعل، قم بتسجيل الخروج
         google.accounts.oauth2.revoke(gapi.client.getToken().access_token);
         gapi.client.setToken('');
+
         document.getElementById('signin-button').innerText = 'تسجيل الدخول لحفظ البيانات';
-        console.log('Signed out');
-        // بعد تسجيل الخروج، قم بتحميل البيانات من localStorage
+
         if (window.syncManager) {
             window.syncManager.loadFromLocalStorage();
         }
@@ -79,55 +79,56 @@ function handleAuthClick() {
 function loadDataFromGoogleSheets() {
     return gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Data!A:Z', // استخدم ورقة عمل اسمها 'Data'
+
+        // ⚠️ تصحيح مهم: الورقة عندك اسمها Sheet1 وليس Data
+        range: 'Sheet1!A:Z',
     }).then(response => {
+
         const values = response.result.values;
-        if (values && values.length > 0 && values.length > 1) {
+        if (values && values.length > 1) {
             const headers = values[0];
             const dataRows = values.slice(1);
-            const db = {};
 
-            // تهيئة كائن قاعدة البيانات
-            headers.forEach(header => {
-                if (header.includes('.')) { // مثل pendingOwnerAccounts
-                    const key = header.split('.')[1];
-                    db[key] = [];
-                }
-            });
+            const db = {
+                pendingOwnerAccounts: [],
+                approvedOwners: [],
+                publishedVenues: [],
+                allBookings: [],
+                tournaments: [],
+                reviews: [],
+                discountCodes: [],
+                notifications: [],
+                chatMessages: [],
+                products: []
+            };
 
             // تحويل الصفوف إلى كائنات
             dataRows.forEach(row => {
                 const obj = {};
                 headers.forEach((header, index) => {
-                    const key = header.includes('.') ? header.split('.')[1] : header;
-                    const value = row[index];
+                    let value = row[index];
                     if (value) {
-                        try {
-                            obj[key] = JSON.parse(value);
-                        } catch (e) {
-                            obj[key] = value;
-                        }
+                        try { value = JSON.parse(value); } 
+                        catch { /* keep string */ }
                     }
+                    obj[header] = value;
                 });
 
-                // إضافة الكائن إلى المصفوفة الصحيحة
                 if (obj.type && db[obj.type]) {
                     db[obj.type].push(obj);
                 }
             });
             
-            console.log('Data loaded from Google Sheets:', db);
+            console.log('Data loaded:', db);
             return db;
         } else {
-            console.log('No data found in Google Sheets.');
+            console.log('No data in sheet.');
             return null;
         }
-    }, response => {
-        console.error('Error loading data from Google Sheets:', response.result.error.message);
-        return null;
     });
 }
 
+// --- Save Data ---
 function saveDataToGoogleSheets(db) {
     const headers = [
         'type', 'id', 'name', 'email', 'password', 'phone', 'sport', 
@@ -154,34 +155,49 @@ function saveDataToGoogleSheets(db) {
         ...db.chatMessages.map(m => ({...m, type: 'chatMessages'})),
         ...db.products.map(p => ({...p, type: 'products'}))
     ];
-    
+
     const values = [headers];
+
     allObjects.forEach(obj => {
-        const row = [];
-        headers.forEach(header => {
-            let value = obj[header];
-            if (value === undefined || value === null) value = '';
-            if (typeof value === 'object') value = JSON.stringify(value);
-            else value = String(value);
-            row.push(value);
+        const row = headers.map(h => {
+            let v = obj[h];
+            if (v === undefined || v === null) return '';
+            if (typeof v === 'object') return JSON.stringify(v);
+            return String(v);
         });
         values.push(row);
     });
 
-    const body = {
-        values: values
-    };
-
     return gapi.client.sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Data!A:Z', // استخدم ورقة عمل اسمها 'Data'
+
+        // ⚠️ نفس التصحيح
+        range: 'Sheet1!A:Z',
+
         valueInputOption: 'RAW',
-        resource: body
-    }).then(response => {
-        console.log(`${response.result.updatedCells} cells updated in Google Sheets.`);
-        return response;
-    }, response => {
-        console.error('Error updating Google Sheets:', response.result.error.message);
-        return null;
+        resource: { values }
+    }).then(r => {
+        console.log(`${r.result.updatedCells} cells updated.`);
+        return r;
+    });
+}
+
+// -----------------------------------------------------
+// 🔥 دالة حذف المنتج — أهم جزء
+// -----------------------------------------------------
+function deleteProduct(productId) {
+    if (!window.db || !window.db.products) {
+        console.error("DB not loaded yet.");
+        return;
+    }
+
+    // حذف المنتج من المصفوفة
+    window.db.products = window.db.products.filter(
+        p => String(p.id) !== String(productId)
+    );
+
+    // تحديث Google Sheets مباشرة
+    saveDataToGoogleSheets(window.db).then(() => {
+        console.log("Product deleted and saved successfully.");
     });
 }
