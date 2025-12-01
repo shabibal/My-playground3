@@ -1174,26 +1174,44 @@ function renderProductsManagement() {
     return html;
 }
 
-function showAddProductForm() {
-    const container = document.getElementById('addProductFormContainer');
-    container.innerHTML = `
-        <div class="add-product-form">
-            <h3>إضافة منتج جديد</h3>
-            <form id="addProductForm" onsubmit="handleAddProduct(event)">
-                <div class="form-group"><label for="productName">اسم المنتج</label><input type="text" id="productName" required></div>
-                <div class="form-group"><label for="productCategory">الفئة</label><select id="productCategory" required><option value="clothing">ملابس رياضية</option><option value="shoes">أحذية رياضية</option><option value="equipment">معدات رياضية</option><option value="accessories">إكسسوارات</option></select></div>
-                <div class="form-group"><label for="productPrice">السعر (ريال عماني)</label><input type="number" id="productPrice" step="0.1" required></div>
-                <div class="form-group"><label for="productDescription">الوصف</label><textarea id="productDescription"></textarea></div>
-                <div class="form-group"><label for="productImage">رابط الصورة</label><input type="url" id="productImage"></div>
-                <div class="form-group"><label for="productStock">الكمية المتوفرة</label><input type="number" id="productStock" value="1" required></div>
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> إضافة المنتج</button>
-                    <button type="button" class="btn btn-secondary" onclick="hideAddProductForm()">إلغاء</button>
-                </div>
-            </form>
-        </div>
-    `;
-    container.classList.remove('hidden');
+function handleAddProduct(event) {
+    event.preventDefault();
+
+    if (!window.db || !window.db.products) {
+        console.error("Database not loaded yet.");
+        return;
+    }
+
+    const name = document.getElementById('productName').value.trim();
+    const category = document.getElementById('productCategory').value;
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const description = document.getElementById('productDescription').value.trim();
+    const image = document.getElementById('productImage').value.trim();
+    const stock = parseInt(document.getElementById('productStock').value);
+
+    const newProduct = {
+        id: Date.now(),
+        name,
+        category,
+        price,
+        description,
+        image,
+        stock,
+        inStock: stock > 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        type: "products"
+    };
+
+    // إضافة المنتج إلى قاعدة البيانات
+    window.db.products.push(newProduct);
+
+    // الحفظ في Google Sheets
+    saveDataToGoogleSheets(window.db).then(() => {
+        showNotification('تمت إضافة المنتج بنجاح.', 'success');
+        hideAddProductForm();
+        showAdminSection('products');
+    });
 }
 
 function hideAddProductForm() {
