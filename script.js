@@ -1202,6 +1202,8 @@ function hideAddProductForm() {
 
 function handleAddProduct(event) {
     event.preventDefault();
+
+    // إنشاء المنتج الجديد
     const newProduct = {
         id: Date.now(),
         name: document.getElementById('productName').value,
@@ -1211,24 +1213,60 @@ function handleAddProduct(event) {
         image: document.getElementById('productImage').value,
         stock: parseInt(document.getElementById('productStock').value),
         inStock: parseInt(document.getElementById('productStock').value) > 0,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+
+        // 🔥 مهم جداً لإظهار المنتج فقط لصاحبه عند الحذف:
+        ownerId: currentLoggedInUser.id
     };
+
+    // إضافة المنتج إلى قاعدة البيانات العامة
     window.db.products.push(newProduct);
+
+    // حفظ البيانات حتى تظهر عند الجميع
     saveData(window.db);
+
+    // إشعار النجاح
     showNotification('تم إضافة المنتج بنجاح.', 'success');
+
+    // إعادة ضبط الفورم
     hideAddProductForm();
+
+    // تحديث قائمة المنتجات مباشرة
     showAdminSection('products');
 }
+
 
 function editProduct(productId) {
     alert('سيتم تطوير هذه الميزة قريباً');
 }
 
 function deleteProduct(productId) {
+    // العثور على المنتج
+    const product = window.db.products.find(p => p.id === productId);
+
+    // إذا المنتج غير موجود
+    if (!product) {
+        showNotification('خطأ: المنتج غير موجود.', 'error');
+        return;
+    }
+
+    // منع أي شخص من حذف منتج ليس ملكه
+    if (product.ownerId !== currentLoggedInUser.id && currentLoggedInUser.role !== 'admin') {
+        showNotification('لا يمكنك حذف منتج لم تقم بإنشائه.', 'error');
+        return;
+    }
+
     if (confirm('هل أنت متأكد أنك تريد حذف هذا المنتج؟')) {
+
+        // حذف المنتج من قاعدة البيانات
         window.db.products = window.db.products.filter(p => p.id !== productId);
+
+        // تحديث البيانات للجميع
         saveData(window.db);
+
+        // تحديث صفحة الإدارة
         showAdminSection('products');
+
         showNotification('تم حذف المنتج بنجاح.', 'success');
     }
 }
