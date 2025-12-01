@@ -1,8 +1,9 @@
 // --- Google Sheets Configuration ---
 // !! هام: يجب عليك الحصول على هذه القيم من Google Cloud Console !!
-const SPREADSHEET_ID = '1N2l2Ko1zzZOXLySTJHXylEX3UY_TATZB3nnpF0NHMf0';
-const API_KEY = 'YOUR_API_KEY'; 
-const CLIENT_ID = 'YOUR_CLIENT_ID'; 
+const SPREADSHEET_ID = 'https://docs.google.com/spreadsheets/d/1N2l2Ko1zzZOXLySTJHXylEX3UY_TATZB3nnpF0NHMf0/edit?usp=sharing';
+const API_KEY = 'AIzaSyAr9is4xy1PrwApMUse2n81sDEIolX2sGg'; 
+const CLIENT_ID = '
+599190856853-amagititt48kn4jj4v13d7vv4em9dn2h.apps.googleusercontent.com'; 
 const DISCOVERY_DOCS = ['https://sheets.googleapis.com/$discovery/rest?version=v4'];
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 

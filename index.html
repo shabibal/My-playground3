@@ -28,6 +28,11 @@
             <span class="notification-badge" id="notificationBadge">0</span>
             <div class="notification-dropdown" id="notificationDropdown"></div>
         </div>
+        <!-- أيقونة عربة التسوق -->
+        <div class="cart-icon" onclick="showPage('cartPage')">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="cart-badge" id="cartBadge">0</span>
+        </div>
         <span id="headerUserName">ضيف</span>
         <button id="signin-button" class="btn btn-secondary btn-sm" onclick="handleAuthClick()">
             تسجيل الدخول لحفظ البيانات
@@ -153,6 +158,47 @@
     </button>
     <div id="productDetailContent">
         <!-- Product details will be loaded here -->
+    </div>
+</div>
+
+<!-- ================ Cart Page ================ -->
+<div id="cartPage" class="container hidden">
+    <h2><i class="fas fa-shopping-cart"></i> عربة التسوق</h2>
+    <div id="cartItemsContainer">
+        <!-- سيتم عرض عناصر السلة هنا -->
+    </div>
+    <div id="cartSummary" class="cart-summary">
+        <!-- سيتم عرض المجموع هنا -->
+    </div>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('productsPage')">
+            <i class="fas fa-arrow-right"></i> متابعة التسوق
+        </button>
+        <button id="proceedToCheckoutBtn" class="btn btn-primary" onclick="showPage('checkoutPage')">
+            <i class="fas fa-credit-card"></i> إتمام الطلب
+        </button>
+    </div>
+</div>
+
+<!-- ================ Checkout Page ================ -->
+<div id="checkoutPage" class="container hidden">
+    <h2><i class="fas fa-credit-card"></i> إتمام الطلب</h2>
+    <div id="checkoutSummary" class="booking-info">
+        <!-- سيتم عرض ملخص الطلب هنا -->
+    </div>
+    <form id="checkoutForm">
+        <div class="form-group"><label for="checkoutName">الاسم الكامل</label><input type="text" id="checkoutName" required></div>
+        <div class="form-group"><label for="checkoutPhone">رقم الهاتف</label><input type="tel" id="checkoutPhone" required></div>
+        <div class="form-group"><label for="checkoutAddress">عنوان التوصيل</label><textarea id="checkoutAddress" required></textarea></div>
+    </form>
+    <div class="payment-form-container">
+        <div id="paypal-button-container-products"></div>
+    </div>
+    <div id="checkoutMessage" class="message hidden"></div>
+    <div class="btn-group">
+        <button class="btn btn-secondary" onclick="showPage('cartPage')">
+            <i class="fas fa-arrow-right"></i> العودة للسلة
+        </button>
     </div>
 </div>
 
